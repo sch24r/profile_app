@@ -19,6 +19,9 @@ abstract final class Cv {
   /// Hero name lines.
   static const nameLines = ['MARCHELLO', 'PUTRA', 'RAMADHAN'];
 
+  /// Student ID / NRP at ITS.
+  static const nrp = '5051241025';
+
   static const headline =
       'Information Systems undergraduate at ITS · Cyber security, digital forensics & OSINT';
 

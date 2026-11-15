@@ -163,6 +163,15 @@ class _HeroCopy extends StatelessWidget {
           ),
         ),
         SizedBox(height: desktop ? Space.s20 : Space.s16),
+        Text(
+          'NRP: ${Cv.nrp}',
+          textAlign: TextAlign.center,
+          style: t.label.copyWith(
+            color: p.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: Space.s8),
         if (desktop)
           FittedBox(fit: BoxFit.scaleDown, child: headline)
         else
