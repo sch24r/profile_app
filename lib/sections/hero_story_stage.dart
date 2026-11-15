@@ -275,11 +275,11 @@ class _HeroFallback extends StatelessWidget {
     final clearance = SiteShell.headerClearance(context);
     final mobile = context.isMobile;
 
-    // Photo: rises from the bottom centre, cropped at ~45 % of its height.
-    final visible = (vh * (mobile ? 0.3 : 0.36)).clamp(150.0, 440.0);
-    var photoH = visible / 0.55;
+    // Photo: rises from the bottom centre, cropped at ~25 % of its height.
+    final visible = (vh * (mobile ? 0.36 : 0.44)).clamp(180.0, 480.0);
+    var photoH = visible / 0.75;
     var photoW = photoH * 0.8;
-    final maxW = vw * (mobile ? 0.66 : 0.5);
+    final maxW = vw * (mobile ? 0.72 : 0.55);
     if (photoW > maxW) {
       photoW = maxW;
       photoH = photoW / 0.8;
@@ -565,12 +565,12 @@ class _Geo {
     titleH = total * fit + 2;
     title = Rect.fromLTWH(card.left + pad, card.top + pad, innerW, titleH);
 
-    // Hero photo, bottom centre, cropped at ~45 % of its height.
-    final photoH = (vh * 0.5).clamp(200.0, 460.0);
+    // Hero photo, bottom centre, cropped at ~25 % of its height (75 % visible).
+    final photoH = (vh * 0.54).clamp(240.0, 520.0);
     final photoW = photoH * 0.8;
     photo = Rect.fromLTWH(
       (vw - photoW) / 2,
-      vh - photoH * 0.55,
+      vh - photoH * 0.75,
       photoW,
       photoH,
     );
