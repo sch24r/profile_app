@@ -3,7 +3,6 @@ import 'dart:ui' show PlatformDispatcher, lerpDouble;
 import 'package:flutter/material.dart';
 
 import '../core/context_x.dart';
-import '../core/links.dart';
 import '../core/router.dart';
 import '../data/cv.dart';
 import '../data/sections.dart';
@@ -17,7 +16,6 @@ import '../widgets/ui/bento_card.dart';
 import '../widgets/ui/chip_tag.dart';
 import '../widgets/ui/round_icon_button.dart';
 import '../widgets/ui/theme_switch.dart';
-import 'footer.dart' show ShellTextLink;
 
 /// Opens the mega-menu panel (P19/P20).
 ///
@@ -27,7 +25,8 @@ import 'footer.dart' show ShellTextLink;
 /// expoOut; closes in [Motion.menuClose]). The content fades in together on
 /// `Interval(0.4, 1)`. It holds the theme switch (P20), a close ✕ and the 6
 /// coloured route cards ([SiteSection.menuCards]) whose chips swap on hover
-/// (P12; long-press on touch). Tapping a card closes the menu, then calls
+/// (P12; long-press on touch). No contact details or location (those live in
+/// ContactPanel and the hero toast). Tapping a card closes the menu, then calls
 /// [AppNav.go] with [context].
 Future<void> showMenuPanel(
   BuildContext context, {
@@ -242,7 +241,7 @@ class _GrowClipper extends CustomClipper<RRect> {
       old.animation != animation;
 }
 
-/// Header (logo, theme switch, ✕) + route cards + quick contact links.
+/// Header (logo, theme switch, ✕) + the 6 route cards.
 class _PanelContent extends StatelessWidget {
   const _PanelContent({
     required this.current,
@@ -313,8 +312,6 @@ class _PanelContent extends StatelessWidget {
                     columns: columns,
                     cardHeight: bp == Bp.mobile ? 128 : 168,
                   ),
-                  const SizedBox(height: Space.s24),
-                  const _QuickLinks(),
                 ],
               ),
             ),
@@ -330,16 +327,7 @@ class _PanelContent extends StatelessWidget {
         children: [
           header,
           const SizedBox(height: Space.s24),
-          Expanded(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(child: _CardGrid(cards: cards, columns: 3)),
-                const SizedBox(width: Space.s32),
-                const SizedBox(width: 240, child: _QuickLinks()),
-              ],
-            ),
-          ),
+          Expanded(child: _CardGrid(cards: cards, columns: 3)),
         ],
       ),
     );
@@ -412,12 +400,14 @@ class _MenuCardState extends State<_MenuCard> {
   bool _alt = false;
 
   static CardTone _toneOf(SiteSection s) => switch (s) {
-    SiteSection.about => CardTone.periwinkle,
-    SiteSection.experience => CardTone.mint,
-    SiteSection.achievements => CardTone.violet,
-    SiteSection.projects => CardTone.peach,
-    SiteSection.skills => CardTone.lilac,
-    SiteSection.contact || SiteSection.home => CardTone.deep,
+    // spec §2.1: About lilac, Experience periwinkle, Achievements deep,
+    // Projects mint, Skills peach, Contact violet.
+    SiteSection.about => CardTone.lilac,
+    SiteSection.experience => CardTone.periwinkle,
+    SiteSection.achievements => CardTone.deep,
+    SiteSection.projects => CardTone.mint,
+    SiteSection.skills => CardTone.peach,
+    SiteSection.contact || SiteSection.home => CardTone.violet,
   };
 
   static ChipStyle _chipStyleOf(CardTone tone) => switch (tone) {
@@ -434,19 +424,19 @@ class _MenuCardState extends State<_MenuCard> {
     SiteSection.about => (Cv.focusAreas.first, Cv.focusAreas.last),
     SiteSection.experience => (
       '${Cv.occupations.length} roles',
-      Cv.occupations.first.role,
+      Cv.recentOccupations(1).first.role,
     ),
     SiteSection.achievements => (
       '${Cv.achievements.length} results',
-      Cv.topAchievement.event,
+      Cv.podiumByRecency.first.event,
     ),
     SiteSection.projects => (
       '${Cv.projects.length} projects',
-      Cv.projects.last.title,
+      Cv.recentProjects(1).first.title,
     ),
     SiteSection.skills => (
       '${Cv.skills.length} skill groups',
-      '${Cv.languages.length} languages',
+      Cv.skills.first.title,
     ),
     SiteSection.contact || SiteSection.home => ('Email', 'LinkedIn'),
   };
@@ -529,35 +519,6 @@ class _MenuCardState extends State<_MenuCard> {
         onLongPress: hoverCapable ? null : () => _setAlt(!_alt),
         child: card,
       ),
-    );
-  }
-}
-
-/// Quick contact links in the panel (desktop side column / below the list).
-class _QuickLinks extends StatelessWidget {
-  const _QuickLinks();
-
-  @override
-  Widget build(BuildContext context) {
-    final p = context.palette;
-    final t = AppType.of(context);
-    final label = t.label.copyWith(color: p.inkMuted);
-    final link = t.title;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text('// GET IN TOUCH', style: label),
-        const SizedBox(height: Space.s12),
-        ShellTextLink(label: 'Email', style: link, onTap: Links.email),
-        ShellTextLink(label: 'LinkedIn', style: link, onTap: Links.linkedin),
-        if (Cv.showPhone)
-          ShellTextLink(label: 'Phone', style: link, onTap: Links.phone),
-        const SizedBox(height: Space.s24),
-        Text('// BASED IN', style: label),
-        const SizedBox(height: Space.s12),
-        Text(Cv.contact.location, style: t.body.copyWith(color: p.ink)),
-      ],
     );
   }
 }

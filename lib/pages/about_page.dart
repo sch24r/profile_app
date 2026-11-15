@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/sections.dart';
-import '../shell/site_shell.dart';
+import '../shell/sub_page_shell.dart';
 
 /// Stub — replaced by the real page in the sections/pages step.
 class AboutPage extends StatelessWidget {
@@ -9,9 +9,12 @@ class AboutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const SiteShell(
+    return SubPageShell(
       section: SiteSection.about,
-      children: [SizedBox(height: 400)],
+      eyebrow: 'ABOUT',
+      titleLines: const ['ABOUT'],
+      tabs: SiteSection.about.tabs,
+      bodyBuilder: (context, tab) => const SizedBox.expand(),
     );
   }
 }

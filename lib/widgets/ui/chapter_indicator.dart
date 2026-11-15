@@ -17,6 +17,9 @@ class ChapterIndicator extends StatelessWidget {
   const ChapterIndicator({super.key, required this.progress, this.controller});
 
   final StoryProgress progress;
+
+  /// Deprecated, ignored. Kept only so existing call sites keep compiling;
+  /// the indicator is decorative (no tap-to-scroll).
   final ScrollController? controller;
 
   static const _chapters = 3;
@@ -24,23 +27,6 @@ class ChapterIndicator extends StatelessWidget {
   static const _dot = 6.0;
   static const _bar = 22.0;
   static const _gap = 10.0;
-
-  void _onStepTap(BuildContext context, int index) {
-    final c = controller;
-    if (c == null || !c.hasClients) return;
-    final vh = MediaQuery.of(context).size.height;
-    final target = switch (index) {
-      0 => 0.0,
-      1 => 2.2 * vh + 80.0,
-      2 => 4.2 * vh + 160.0,
-      _ => 0.0,
-    };
-    c.animateTo(
-      target,
-      duration: const Duration(milliseconds: 600),
-      curve: Curves.easeInOutCubic,
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,67 +43,54 @@ class ChapterIndicator extends StatelessWidget {
       alignment: Alignment.centerRight,
       child: Padding(
         padding: const EdgeInsets.only(right: 16),
-        child: ExcludeSemantics(
-          child: RepaintBoundary(
-            child: ListenableBuilder(
-              listenable: progress,
-              builder: (context, _) {
-                final active = progress.active.clamp(0, _chapters - 1);
-                final pill = DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: pillColor,
-                    borderRadius: BorderRadius.circular(_width / 2),
-                  ),
-                  child: SizedBox(
-                    width: _width,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          for (var i = 0; i < _chapters; i++) ...[
-                            if (i > 0) const SizedBox(height: _gap),
-                            MouseRegion(
-                              cursor: SystemMouseCursors.click,
-                              child: GestureDetector(
-                                behavior: HitTestBehavior.opaque,
-                                onTap: () => _onStepTap(context, i),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 2,
-                                  ),
-                                  child: _Step(
-                                    active: i == active,
-                                    fill: i == active
-                                        ? progress.activeProgress.clamp(
-                                            0.0,
-                                            1.0,
-                                          )
-                                        : (i < active ? 1.0 : 0.0),
-                                    duration: stepDur,
-                                    idle: idle,
-                                    color: fill,
-                                  ),
-                                ),
+        child: IgnorePointer(
+          child: ExcludeSemantics(
+            child: RepaintBoundary(
+              child: ListenableBuilder(
+                listenable: progress,
+                builder: (context, _) {
+                  final active = progress.active.clamp(0, _chapters - 1);
+                  final pill = DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: pillColor,
+                      borderRadius: BorderRadius.circular(_width / 2),
+                    ),
+                    child: SizedBox(
+                      width: _width,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            for (var i = 0; i < _chapters; i++) ...[
+                              if (i > 0) const SizedBox(height: _gap),
+                              _Step(
+                                active: i == active,
+                                fill: i == active
+                                    ? progress.activeProgress.clamp(0.0, 1.0)
+                                    : (i < active ? 1.0 : 0.0),
+                                duration: stepDur,
+                                idle: idle,
+                                color: fill,
                               ),
-                            ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-                return TweenAnimationBuilder<double>(
-                  tween: Tween<double>(end: progress.visible ? 0 : 1),
-                  duration: slideDur,
-                  curve: Motion.expoOut,
-                  child: pill,
-                  builder: (context, v, child) => Transform.translate(
-                    offset: Offset(48 * v, 0),
-                    child: Opacity(opacity: 1 - v, child: child),
-                  ),
-                );
-              },
+                  );
+                  return TweenAnimationBuilder<double>(
+                    tween: Tween<double>(end: progress.visible ? 0 : 1),
+                    duration: slideDur,
+                    curve: Motion.expoOut,
+                    child: pill,
+                    builder: (context, v, child) => Transform.translate(
+                      offset: Offset(48 * v, 0),
+                      child: Opacity(opacity: 1 - v, child: child),
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ),

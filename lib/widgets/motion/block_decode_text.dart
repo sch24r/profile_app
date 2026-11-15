@@ -36,7 +36,7 @@ class BlockDecodeText extends StatefulWidget {
     this.delay = Duration.zero,
     this.start,
     this.color,
-    this.triggerFraction = 0.05,
+    this.triggerFraction = 0.4,
   });
 
   final List<String> lines;
@@ -55,6 +55,7 @@ class BlockDecodeText extends StatefulWidget {
   final Color? color;
 
   /// Visible fraction that triggers the animation (when [start] is null).
+  /// P13: 40 % in view.
   final double triggerFraction;
 
   @override
@@ -67,20 +68,12 @@ class _BlockDecodeTextState extends State<BlockDecodeText>
   _BlockTiming _timing = const _BlockTiming(1, 0);
   ValueListenable<bool>? _start;
   bool _triggered = false;
-  Timer? _fallbackTimer;
 
   @override
   void initState() {
     super.initState();
     _timing = _BlockTiming.of(widget.lines.length, widget.delay);
     _listenTo(widget.start);
-    // Guarantee decode: if InView doesn't fire within 400ms (e.g. inside PinnedStage),
-    // trigger so the headline is never permanently stuck on blocks.
-    _fallbackTimer = Timer(const Duration(milliseconds: 400), () {
-      if (mounted && !_triggered) {
-        _trigger();
-      }
-    });
   }
 
   @override
@@ -123,7 +116,6 @@ class _BlockDecodeTextState extends State<BlockDecodeText>
 
   @override
   void dispose() {
-    _fallbackTimer?.cancel();
     _start?.removeListener(_onStart);
     _clock.dispose();
     super.dispose();
@@ -352,6 +344,11 @@ class _RenderBlockLine extends RenderBox {
   TextStyle _style;
   bool _textPartial = false;
 
+  /// Chamfered glyph blocks for the current layout (built lazily, cached
+  /// until the next layout).
+  Path? _blocks;
+  final Paint _blockPaint = Paint()..isAntiAlias = true;
+
   // ── Properties ──────────────────────────────────────────────────────────
 
   void setText(String text, TextStyle style) {
@@ -500,7 +497,57 @@ class _RenderBlockLine extends RenderBox {
   void performLayout() {
     _layoutText(constraints.maxWidth);
     size = constraints.constrain(_painter.size);
+    _blocks = null;
   }
+
+  /// One chamfered rect per non-space glyph (box from
+  /// `getBoxesForSelection`), corner cut 18 % of the box height on the
+  /// top-left and bottom-right corners. Requires the painter to be laid out.
+  Path _buildBlocks() {
+    final path = Path();
+    var start = 0;
+    for (final rune in _text.runes) {
+      final length = rune > 0xFFFF ? 2 : 1;
+      final end = start + length;
+      if (!_isSpace(rune)) {
+        final boxes = _painter.getBoxesForSelection(
+          TextSelection(baseOffset: start, extentOffset: end),
+        );
+        for (final b in boxes) {
+          final r = b.toRect();
+          if (r.width <= 0 || r.height <= 0) continue;
+          // Hairline seam between neighbouring cells.
+          final inset = math.min(1.0, r.width * 0.06);
+          final cell = Rect.fromLTRB(
+            r.left + inset,
+            r.top,
+            r.right - inset,
+            r.bottom,
+          );
+          final cut = math.min(cell.height * 0.18, cell.width / 2);
+          path.addPolygon([
+            Offset(cell.left + cut, cell.top),
+            Offset(cell.right, cell.top),
+            Offset(cell.right, cell.bottom - cut),
+            Offset(cell.right - cut, cell.bottom),
+            Offset(cell.left, cell.bottom),
+            Offset(cell.left, cell.top + cut),
+          ], true);
+        }
+      }
+      start = end;
+    }
+    return path;
+  }
+
+  static bool _isSpace(int rune) =>
+      rune == 0x20 ||
+      rune == 0x09 ||
+      rune == 0x0A ||
+      rune == 0x0D ||
+      rune == 0xA0 ||
+      rune == 0x3000 ||
+      (rune >= 0x2000 && rune <= 0x200B);
 
   // ── Paint ───────────────────────────────────────────────────────────────
 
@@ -508,6 +555,31 @@ class _RenderBlockLine extends RenderBox {
   void paint(PaintingContext context, Offset offset) {
     // Intrinsic / dry layout calls may have re-laid the painter: restore.
     _layoutText(constraints.maxWidth);
-    _painter.paint(context.canvas, offset);
+    final e = _elapsed;
+    final blockA = _timing.blockAlpha(e, _index);
+    final textA = _timing.textAlpha(e);
+
+    final color = _style.color;
+    if (blockA > 0 && color != null) {
+      final blocks = _blocks ??= _buildBlocks();
+      _blockPaint.color = color.withValues(alpha: color.a * blockA);
+      context.canvas
+        ..save()
+        ..translate(offset.dx, offset.dy)
+        ..drawPath(blocks, _blockPaint)
+        ..restore();
+    }
+
+    if (textA > 0 && textA < 1 && _textPartial) {
+      _opacityLayer.layer = context.pushOpacity(
+        offset,
+        (textA * 255).round(),
+        (context, offset) => _painter.paint(context.canvas, offset),
+        oldLayer: _opacityLayer.layer,
+      );
+    } else {
+      _opacityLayer.layer = null;
+      if (textA > 0) _painter.paint(context.canvas, offset);
+    }
   }
 }

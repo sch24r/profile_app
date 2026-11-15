@@ -37,18 +37,19 @@ class AppType {
 
   double _f(double min, double max) => _c.fluid(min, max);
 
-  /// Hero name: giant blocky caps.
+  /// Hero name: giant blocky caps (spec §1.2: 38 → 128, `w * 0.105`;
+  /// phones `w * 0.13`, observed spec §5).
   TextStyle get heroName => _s(
     AppFonts.display,
-    (_c.screenWidth * (_c.isMobile ? 0.13 : 0.105)).clamp(38.0, 168.0),
+    (_c.screenWidth * (_c.isMobile ? 0.13 : 0.105)).clamp(38.0, 128.0),
     900,
-    height: 0.95,
+    height: 0.92,
     trackingEm: -0.02,
   );
   TextStyle get displayL =>
-      _s(AppFonts.display, _f(34, 96), 800, height: 0.95, trackingEm: -0.02);
+      _s(AppFonts.display, _f(34, 96), 800, height: 0.92, trackingEm: -0.02);
   TextStyle get displayM =>
-      _s(AppFonts.display, _f(26, 56), 800, height: 0.98, trackingEm: -0.01);
+      _s(AppFonts.display, _f(26, 56), 800, height: 0.95, trackingEm: -0.01);
   TextStyle get displayS =>
       _s(AppFonts.display, _f(22, 32), 800, height: 1.0, trackingEm: -0.01);
   TextStyle get stat => _s(

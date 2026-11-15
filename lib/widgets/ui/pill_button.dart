@@ -195,19 +195,15 @@ _PillColors _colorsFor(PillVariant v, AppPalette p) => switch (v) {
   // Ink pill: inverts with the theme (dark ink on light, light on dark).
   PillVariant.ink => _PillColors(p.ink, p.surface, p.primary),
   // Always-white pill with fixed dark ink (sits on dark / accent bands).
-  PillVariant.white => _PillColors(
-    const Color(0xFFFFFFFF),
-    p.onAccent,
-    p.violet300,
-  ),
+  PillVariant.white => _PillColors(p.onDeep, p.onAccent, p.violet300),
   PillVariant.outline => _PillColors(
-    const Color(0x00000000),
+    Colors.transparent,
     p.ink,
     p.primary,
     p.ink,
   ),
   PillVariant.outlineOnDark => _PillColors(
-    const Color(0x00000000),
+    Colors.transparent,
     p.onDeep,
     p.violet300,
     p.onDeep.withValues(alpha: 0.55),

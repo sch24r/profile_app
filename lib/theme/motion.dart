@@ -59,11 +59,11 @@ abstract final class Motion {
   static const insetClip = Duration(milliseconds: 700); // mobile chapter 2
   static const scrollToDuration = Duration(milliseconds: 900);
 
-  // P13 block-decode (snappy, responsive digital reveal)
-  static const blockLineStagger = Duration(milliseconds: 60);
-  static const blockFadeIn = Duration(milliseconds: 80);
-  static const blockHold = Duration(milliseconds: 140);
-  static const blockSwap = Duration(milliseconds: 100);
+  // P13 block-decode (observed: 200 ms line stagger, 120 fade, hold to 800, 150 swap)
+  static const blockLineStagger = Duration(milliseconds: 200);
+  static const blockFadeIn = Duration(milliseconds: 120);
+  static const blockHold = Duration(milliseconds: 800);
+  static const blockSwap = Duration(milliseconds: 150);
 
   // ── Stagger (mobile fallback lists only) ─────────────────────────────
   static const stagger = Duration(milliseconds: 60);

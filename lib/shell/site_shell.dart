@@ -12,8 +12,9 @@ import 'site_header.dart';
 
 export 'intro_overlay.dart' show IntroScope;
 
-/// The frame of every page: scroll view + floating [SiteHeader] + optional
-/// home [ChapterIndicator] + first-visit [IntroOverlay].
+/// HOME ONLY. Vertical scroll view + floating [SiteHeader] + desktop
+/// [ChapterIndicator] + first-visit [IntroOverlay]. Sub-pages use
+/// `SubPageShell` (one screen, no scroll, no footer).
 ///
 /// Owns the page [ScrollController] ([SiteShell.controllerOf]) and the global
 /// pointer position ([PointerTracker]). [children] are plain box widgets laid

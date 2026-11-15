@@ -67,6 +67,10 @@ double visibleFraction(BuildContext context) {
 /// and calls [onViewportChanged] (never during build/layout/paint).
 mixin ViewportListenerMixin<T extends StatefulWidget> on State<T> {
   ScrollPosition? _vlPosition;
+
+  /// Nearest enclosing horizontal scroll position (rails, carousels): moving
+  /// it can bring the box into / out of the page viewport horizontally.
+  ScrollPosition? _vlHPosition;
   bool _vlCheckScheduled = false;
   bool _vlListening = true;
 
@@ -79,6 +83,8 @@ mixin ViewportListenerMixin<T extends StatefulWidget> on State<T> {
     _vlListening = false;
     _vlPosition?.removeListener(_vlOnScroll);
     _vlPosition = null;
+    _vlHPosition?.removeListener(_vlOnScroll);
+    _vlHPosition = null;
   }
 
   /// Schedule a check after the current frame's layout.
@@ -110,6 +116,18 @@ mixin ViewportListenerMixin<T extends StatefulWidget> on State<T> {
         _vlPosition = position;
         _vlPosition?.addListener(_vlOnScroll);
       }
+      final nearest = context.findAncestorStateOfType<ScrollableState>();
+      final hPosition =
+          nearest != null &&
+              (nearest.axisDirection == AxisDirection.left ||
+                  nearest.axisDirection == AxisDirection.right)
+          ? nearest.position
+          : null;
+      if (!identical(hPosition, _vlHPosition)) {
+        _vlHPosition?.removeListener(_vlOnScroll);
+        _vlHPosition = hPosition;
+        _vlHPosition?.addListener(_vlOnScroll);
+      }
     }
     scheduleViewportCheck();
   }
@@ -124,6 +142,8 @@ mixin ViewportListenerMixin<T extends StatefulWidget> on State<T> {
   void dispose() {
     _vlPosition?.removeListener(_vlOnScroll);
     _vlPosition = null;
+    _vlHPosition?.removeListener(_vlOnScroll);
+    _vlHPosition = null;
     super.dispose();
   }
 }

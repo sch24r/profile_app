@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/context_x.dart';
 import '../../theme/spacing.dart';
 import '../../theme/typography.dart';
+import '../motion/block_decode_text.dart';
 
 /// Section heading block: mono eyebrow (`// EDUCATION`), P13 block-decode
 /// title lines ([AppType.displayL]) and an optional muted lead paragraph.
@@ -53,7 +54,7 @@ class SectionHeader extends StatelessWidget {
     final Color titleColor;
     final Color leadColor;
     if (onAccent) {
-      eyebrowColor = const Color(0xFF3A2C8F);
+      eyebrowColor = p.onAccentMuted;
       titleColor = p.onAccent;
       leadColor = p.onAccentMuted;
     } else if (onDark) {
@@ -67,12 +68,15 @@ class SectionHeader extends StatelessWidget {
     }
 
     final eb = eyebrow.trimLeft().startsWith('//') ? eyebrow : '// $eyebrow';
-    final title = Text(
-      titleLines.join('\n'),
-      style: (titleStyle ?? t.displayL).copyWith(
-        color: titleStyle?.color ?? titleColor,
+    final title = Semantics(
+      header: true,
+      child: BlockDecodeText(
+        titleLines,
+        style: (titleStyle ?? t.displayL).copyWith(
+          color: titleStyle?.color ?? titleColor,
+        ),
+        textAlign: textAlign,
       ),
-      textAlign: textAlign,
     );
 
     final sideTrailing = trailing != null && !centered && !context.isMobile;

@@ -1,6 +1,7 @@
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show SystemNavigator;
 
 import '../data/sections.dart';
 import '../pages/about_page.dart';
@@ -27,32 +28,38 @@ abstract final class AppNav {
 
   static _PageStackObserver get _stack => observer as _PageStackObserver;
 
-  /// Navigates to [s].
+  /// Navigates to [s], optionally opening [tab] (sub-pages with tabs).
   ///
-  /// * Already on [s] → scrolls the current page back to the top.
+  /// * Already on [s] → switches to [tab] when given ([setTab]), otherwise
+  ///   scrolls Home back to the top.
   /// * [s] is the root page (e.g. home when the visit started on `/`) →
-  ///   pops back to it.
+  ///   pops back to it (and switches to [tab] when given).
   /// * Home when the root is a sub-page → pushes home, then drops every page
   ///   below it once it is in place (home becomes the root).
   /// * Otherwise → pushes [s] with the P1 transition; once it is in place,
   ///   any page between the root and [s] is dropped.
-  static void go(BuildContext context, SiteSection s) {
+  static void go(BuildContext context, SiteSection s, {String? tab}) {
     final nav = Navigator.of(context);
     final pages = _stack.pagesOf(nav);
     final top = pages.isEmpty ? null : pages.last;
     final root = pages.isEmpty ? null : pages.first;
 
-    if (top?.settings.name == s.path) {
-      _scrollToTop(context);
+    if (top != null && SiteSection.fromPath(top.settings.name) == s) {
+      if (tab != null && s.tabs.isNotEmpty) {
+        _setTabOn(top, s, tab);
+      } else {
+        _scrollToTop(context);
+      }
       return;
     }
-    if (root != null && root.settings.name == s.path) {
+    if (root != null && SiteSection.fromPath(root.settings.name) == s) {
       nav.popUntil((r) => r == root);
+      if (tab != null && s.tabs.isNotEmpty) _setTabOn(root, s, tab);
       return;
     }
     // Home when the visit started elsewhere: home becomes the new root.
     final replaceAll = s == SiteSection.home;
-    final route = _routeFor(s);
+    final route = _routeFor(s, tab);
     nav.push(route);
     // Trim the stack only after the new page fully covers it, so the outgoing
     // page stays visible under the 200 ms overlay hold.
@@ -72,6 +79,56 @@ abstract final class AppNav {
     route.animation?.addStatusListener(trim);
   }
 
+  /// Switches the tab of the current sub-page [s] WITHOUT pushing a route:
+  /// updates the page's tab state and replaces the browser URL query.
+  static void setTab(BuildContext context, SiteSection s, String tab) {
+    final route = ModalRoute.of(context);
+    if (route != null && SiteSection.fromPath(route.settings.name) == s) {
+      _setTabOn(route, s, tab);
+    } else {
+      go(context, s, tab: tab);
+    }
+  }
+
+  /// Tab id of the current route (null if its section has no tabs).
+  /// Reflects [setTab] changes; falls back to the section's first tab.
+  static String? tabOf(BuildContext context) {
+    final route = ModalRoute.of(context);
+    if (route == null) return null;
+    final s = SiteSection.fromPath(route.settings.name);
+    return s.resolveTab(
+      _tabs[route] ?? SiteSection.tabFromLocation(route.settings.name),
+    );
+  }
+
+  /// Per-route tab notifier (created lazily); SubPageShell listens to it.
+  static ValueNotifier<String?> tabListenable(BuildContext context) {
+    final route = ModalRoute.of(context)!;
+    return _tabNotifier(route);
+  }
+
+  static final Expando<String> _tabs = Expando('tab');
+  static final Expando<ValueNotifier<String?>> _notifiers = Expando('tabN');
+
+  static ValueNotifier<String?> _tabNotifier(Route<dynamic> route) =>
+      _notifiers[route] ??= ValueNotifier<String?>(
+        SiteSection.fromPath(route.settings.name).resolveTab(
+          _tabs[route] ?? SiteSection.tabFromLocation(route.settings.name),
+        ),
+      );
+
+  static void _setTabOn(Route<dynamic> route, SiteSection s, String tab) {
+    final resolved = s.resolveTab(tab);
+    if (resolved == null) return;
+    _tabs[route] = resolved;
+    _tabNotifier(route).value = resolved;
+    // Replace (not push) the browser URL; no-op off the web.
+    SystemNavigator.routeInformationUpdated(
+      uri: Uri.parse(s.location(resolved)),
+      replace: true,
+    );
+  }
+
   static void _scrollToTop(BuildContext context) {
     final controller = SiteShell.controllerOf(context);
     if (controller == null || !controller.hasClients) return;
@@ -87,14 +144,22 @@ abstract final class AppNav {
   }
 
   /// `MaterialApp.onGenerateRoute`. Unknown paths resolve to home.
-  static Route<dynamic> onGenerateRoute(RouteSettings settings) =>
-      _routeFor(SiteSection.fromPath(settings.name), settings.arguments);
+  /// `?tab=` is parsed; an unknown tab resolves to the section's first tab.
+  static Route<dynamic> onGenerateRoute(RouteSettings settings) => _routeFor(
+    SiteSection.fromPath(settings.name),
+    SiteSection.tabFromLocation(settings.name),
+    settings.arguments,
+  );
 
   static PolygonRoute<void> _routeFor(
     SiteSection section, [
+    String? tab,
     Object? arguments,
   ]) => PolygonRoute<void>(
-    settings: RouteSettings(name: section.path, arguments: arguments),
+    settings: RouteSettings(
+      name: tab == null ? section.path : section.location(tab),
+      arguments: arguments,
+    ),
     overlayColor: (context) => overlayColorFor(section, context.palette),
     builder: (_) => pageFor(section),
   );

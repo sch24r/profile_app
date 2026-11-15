@@ -44,10 +44,11 @@ abstract final class Layout {
     Bp.desktop => 48,
   };
 
+  /// Home section vertical padding: 56 / 72 / 96.
   static double sectionPadding(Bp bp) => switch (bp) {
-    Bp.mobile => 48,
-    Bp.tablet => 64,
-    Bp.desktop => 80,
+    Bp.mobile => 56,
+    Bp.tablet => 72,
+    Bp.desktop => 96,
   };
 
   static double headerGap(Bp bp) => switch (bp) {

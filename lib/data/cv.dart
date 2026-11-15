@@ -22,8 +22,8 @@ abstract final class Cv {
   static const headline =
       'Information Systems undergraduate at ITS · Cyber security, digital forensics & OSINT';
 
-  /// Status toast (P5).
-  static const status = 'Now · Teaching Assistant @ ITS';
+  /// Status toast (P5) — location only; the only place location appears on Home.
+  static const status = 'Based in Kediri, East Java';
 
   static const profile =
       'An undergraduate student with a vision of becoming an idea initiator in '
@@ -56,17 +56,16 @@ abstract final class Cv {
     ),
   ];
 
-  /// Occupations, newest first.
+  /// Occupations, newest first (CV text verbatim).
   static const occupations = [
     Experience(
       org: 'Information Asset Protection - Information Systems of ITS',
-      role: 'Lab Instructor – Cryptography & Hash Cracking',
+      role: 'Teaching Assistant',
       location: 'Surabaya, Indonesia',
       period: Period(YM(2026, 9)),
       bullets: [
-        'Guiding practical learning in cryptography, key exchange, and hash cracking techniques.',
+        'Guiding practical learning in cryptography and hash cracking.',
       ],
-      tags: ['Cryptography', 'Hash Cracking'],
     ),
     Experience(
       org: 'Innovative Government Award 2026 - Badan Riset dan Inovasi Daerah Kota Surabaya',
@@ -74,30 +73,27 @@ abstract final class Cv {
       location: 'Surabaya, Indonesia',
       period: Period(YM(2026, 7), YM(2026, 8)),
       bullets: [
-        'Evaluating municipal innovation proposals and ensuring standardized service documentation.',
-        'Performing quality and compliance checks on regional public-private cooperation agreements.',
+        'Evaluating integrated services to ensure clear and standardized documentation.',
+        'Performing quality and compliance checks on regional cooperation agreements.',
       ],
-      tags: ['Assessment', 'Compliance'],
     ),
     Experience(
       org: 'Cyber Security - Informatics Engineering of Esa Unggul',
-      role: 'Course Instructor – Cyber Security Fundamentals',
+      role: 'Teaching Assistant',
       location: 'Online',
       period: Period(YM(2026, 3), YM(2026, 8)),
       bullets: [
-        'Arranging theoretical coursework and conducting hands-on offensive & defensive assignments.',
+        'Arranging theoretical materials and providing practical assignments.',
       ],
-      tags: ['Cyber Security', 'Curriculum Design'],
     ),
     Experience(
       org: 'Information Asset Protection - Information Systems of ITS',
-      role: 'Lab Instructor – OSINT & Intelligence Gathering',
+      role: 'Teaching Assistant',
       location: 'Surabaya, Indonesia',
       period: Period(YM(2025, 9), YM(2025, 12)),
       bullets: [
-        'Directing hands-on investigations in open-source intelligence, social engineering vectors, and threat mapping.',
+        'Guiding practical learning in intelligence gathering and social engineering.',
       ],
-      tags: ['OSINT', 'Threat Intelligence'],
     ),
   ];
 
@@ -128,7 +124,7 @@ abstract final class Cv {
       location: 'Surabaya, Indonesia',
       period: Period(YM(2025, 6)),
       bullets: [
-        'Mentoring members on information security.',
+        'Training members on information security.',
         'Directing member activities and maintaining well-documented archives.',
       ],
     ),
@@ -390,16 +386,13 @@ abstract final class Cv {
     ),
   ];
 
-  /// The headline result (centre card): No Hack No CTF 2025.
-  static Achievement get topAchievement => achievements[2];
-
-  /// Four side-card podium results, in display order.
-  static List<Achievement> get podiumSide => [
-    achievements[3], // FIK CUP 1st
-    achievements[6], // GEMATIK V 2nd
-    achievements[0], // OSINTATHON 3rd
-    achievements[1], // Standoff 5th
-  ];
+  /// The 5 ranked results, newest first. Ties (same month) resolve to the
+  /// entry listed later in the CV first: GEMATIK V 2nd, FIK CUP 1st,
+  /// No Hack No CTF 1st, Standoff 5th, OSINTATHON 3rd.
+  static List<Achievement> get podiumByRecency => _newestFirst(
+    achievements.where((a) => a.isRanked).toList(),
+    (a) => a.date,
+  );
 
   static List<Achievement> get qualifications =>
       achievements.where((a) => !a.isRanked).toList(growable: false);
@@ -461,28 +454,28 @@ abstract final class Cv {
       title: 'Native Kernel Emulation',
       period: Period.month(YM(2024, 6)),
       summary: 'Emulating Ubuntu ARM LTS on mobile hardware by directly leverage the host’s native kernel.',
-      tags: ['Ubuntu ARM', 'Android', 'Linux kernel'],
+      tags: ['Ubuntu ARM LTS', 'Native kernel'],
       art: ProjectArt.terminal,
     ),
     Project(
       title: 'Blockchain 101',
       period: Period.month(YM(2025, 4)),
       summary: 'Developing a stateless web-based simulator in Go to demonstrate core blockchain mechanisms.',
-      tags: ['Go', 'Web simulator', 'Blockchain'],
+      tags: ['Go', 'Blockchain'],
       art: ProjectArt.blocks,
     ),
     Project(
       title: 'Hum Catcher',
       period: Period.month(YM(2025, 11)),
       summary: 'Engineering a digital forensics tool in Python to extract and match ENF signals from audio recordings against power grid frequency databases.',
-      tags: ['Python', 'ENF analysis', 'Digital forensics'],
+      tags: ['Python', 'ENF signals', 'Digital forensics'],
       art: ProjectArt.waveform,
     ),
     Project(
       title: 'AccelerEd',
       period: Period(YM(2026, 4), YM(2026, 6)),
       summary: 'Architecting a full-stack platform in Next.js that features AI-driven insights to streamline achievement tracking and career guidance for students.',
-      tags: ['Next.js', 'AI insights', 'Full-stack'],
+      tags: ['Next.js', 'AI-driven insights', 'Full-stack'],
       art: ProjectArt.bars,
     ),
   ];
@@ -491,30 +484,6 @@ abstract final class Cv {
     LanguageSkill('Indonesian', 5, 'Native or bilingual proficiency'),
     LanguageSkill('Javanese', 5, 'Native or bilingual proficiency'),
     LanguageSkill('English', 3, 'Limited working proficiency'),
-  ];
-
-  static const stats = [
-    Stat(
-      value: '13',
-      caption: 'awards & finalists in CTF battles',
-      detail: 'Championships and finalist rankings across international and national competitions.',
-    ),
-    Stat(
-      value: '4',
-      caption: 'podium finishes in top tournaments',
-      detail:
-          'No Hack No CTF 1st · FIK CUP 1st · GEMATIK V 2nd · OSINTATHON 3rd.',
-    ),
-    Stat(
-      value: '6',
-      caption: 'CTF events as challenge author',
-      detail: 'Curated challenges in git forensics, OSINT, and digital forensics, 2025–2026.',
-    ),
-    Stat(
-      value: '12',
-      caption: 'tech mentorship & volunteer roles',
-      detail: 'Teaching assistantships, workshop mentoring, and IT development staff at ITS.',
-    ),
   ];
 
   /// Ticker / marquee items (tools & topics).
@@ -541,4 +510,31 @@ abstract final class Cv {
   ];
 
   static const focusAreas = ['Digital forensics', 'Steganography', 'OSINT'];
+
+  // ---- "Recent" helpers (newest first by period start / date). ----------
+  // Ties resolve to the entry listed later in the CV (the CV lists oldest →
+  // newest within a section).
+
+  static List<Experience> recentOccupations(int n) =>
+      _newestFirst(occupations, (e) => e.period.start).take(n).toList();
+
+  static List<Experience> recentOrganizations(int n) =>
+      _newestFirst(organizations, (e) => e.period.start).take(n).toList();
+
+  /// By event: Schematics NPC CTF 2026, Diskominfo Jatim 2026, Heroes CTF 2026, …
+  static List<VolunteerEntry> recentVolunteers(int n) =>
+      _newestFirst(volunteers, (e) => e.period.start).take(n).toList();
+
+  static List<Project> recentProjects(int n) =>
+      _newestFirst(projects, (p) => p.period.start).take(n).toList();
+
+  static List<T> _newestFirst<T>(List<T> items, YM Function(T) key) {
+    final indexed = [for (var i = 0; i < items.length; i++) (i, items[i])];
+    indexed.sort((a, b) {
+      final ka = key(a.$2), kb = key(b.$2);
+      final c = (kb.year * 12 + kb.month).compareTo(ka.year * 12 + ka.month);
+      return c != 0 ? c : b.$1.compareTo(a.$1);
+    });
+    return [for (final e in indexed) e.$2];
+  }
 }

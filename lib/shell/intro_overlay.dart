@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../core/context_x.dart';
+import '../theme/motion.dart';
 import '../widgets/motion/polygon_mask.dart';
 
 /// Intro clock for the home hero (P1–P5), total [IntroScope.total].
@@ -66,9 +67,10 @@ class IntroOverlay extends StatelessWidget {
 
   /// End of the mask interval on the intro clock for this layout
   /// (900 ms on phones, 1000 ms otherwise).
-  static double maskEnd(BuildContext context) => context.isMobile
-      ? 900 / IntroScope.total.inMilliseconds
-      : IntroScope.mask.end;
+  static double maskEnd(BuildContext context) =>
+      (context.isMobile ? Motion.introMaskMobile : Motion.introMask)
+          .inMicroseconds /
+      IntroScope.total.inMicroseconds;
 
   @override
   Widget build(BuildContext context) {

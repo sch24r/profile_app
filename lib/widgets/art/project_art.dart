@@ -12,7 +12,7 @@ import '../ui/bento_card.dart';
 /// terminal, blocks, waveform or bars.
 ///
 /// Resting state is a static frame. When [active] (hover / tap on the card)
-/// the art nudges (−4, −4) px ([Motion.chipSwap], expoOut — P12) and its
+/// the art nudges (−5, −5) px ([Motion.chipSwap], expoOut — P12) and its
 /// loop runs; the loop is a single controller under a [ViewportGate] and is
 /// off under reduced motion. Colours default to the enclosing [BentoCard]:
 /// [color] = shapes (tone fg), [onColor] = details drawn on top of shapes
@@ -91,7 +91,7 @@ class _ArtLoopState extends State<_ArtLoop> with TickerProviderStateMixin {
     duration: Motion.chipSwap,
   );
   late final Animation<Offset> _offset =
-      Tween<Offset>(begin: Offset.zero, end: const Offset(-4, -4)).animate(
+      Tween<Offset>(begin: Offset.zero, end: const Offset(-5, -5)).animate(
         CurvedAnimation(
           parent: _nudge,
           curve: Motion.expoOut,
@@ -100,6 +100,12 @@ class _ArtLoopState extends State<_ArtLoop> with TickerProviderStateMixin {
       );
 
   bool _reduce = false;
+
+  /// True while the loop runs its last cycle out to the rest frame.
+  bool _finishing = false;
+
+  /// Bumped per finish run so a stale completion callback is ignored.
+  int _finishRun = 0;
 
   @override
   void didChangeDependencies() {
@@ -117,13 +123,21 @@ class _ArtLoopState extends State<_ArtLoop> with TickerProviderStateMixin {
   void _sync({required bool animate}) {
     final on = widget.active;
     if (_reduce) {
+      _finishing = false;
+      _finishRun++;
       _loop.stop();
       _loop.value = 0;
       _nudge.value = on ? 1 : 0;
       return;
     }
     if (on) {
-      if (!_loop.isAnimating) _loop.repeat();
+      // Restart the repeat if idle or if it was finishing its last cycle
+      // (otherwise re-activating mid-finish would leave the loop stopped).
+      if (_finishing || !_loop.isAnimating) {
+        _finishing = false;
+        _finishRun++;
+        _loop.repeat();
+      }
       if (animate) {
         _nudge.forward();
       } else {
@@ -131,10 +145,14 @@ class _ArtLoopState extends State<_ArtLoop> with TickerProviderStateMixin {
       }
     } else {
       // Finish the current cycle to the rest frame, then stop.
-      if (_loop.isAnimating) {
+      if (_loop.isAnimating && !_finishing) {
+        _finishing = true;
+        final run = ++_finishRun;
         _loop
             .animateTo(1.0, duration: _period * (1 - _loop.value))
             .whenCompleteOrCancel(() {
+              if (run != _finishRun) return;
+              _finishing = false;
               if (mounted && !widget.active && !_loop.isAnimating) {
                 _loop.value = 0;
               }
@@ -239,6 +257,20 @@ class _TerminalPainter extends _ArtPainter {
   _TerminalPainter(super.t, super.color, super.onColor, super.accent);
 
   static const _lines = [0.62, 0.84, 0.46, 0.7];
+
+  /// Prompt chevrons, one per line (design space, built once).
+  static final List<Path> _chevrons = [
+    for (var i = 0; i < _lines.length; i++) _chevron(32.0 + i * 12),
+  ];
+
+  static Path _chevron(double y) => Path()
+    ..moveTo(12, y)
+    ..lineTo(17, y + 3)
+    ..lineTo(12, y + 6)
+    ..lineTo(12, y + 4.4)
+    ..lineTo(14.6, y + 3)
+    ..lineTo(12, y + 1.6)
+    ..close();
   static final _window = RRect.fromRectAndRadius(
     const Rect.fromLTWH(4, 6, 112, 78),
     const Radius.circular(8),
@@ -265,16 +297,7 @@ class _TerminalPainter extends _ArtPainter {
     var cursorAt = const Offset(16, 32);
     for (var i = 0; i < _lines.length; i++) {
       final y = 32.0 + i * 12;
-      // Prompt chevron.
-      final chevron = Path()
-        ..moveTo(12, y)
-        ..lineTo(17, y + 3)
-        ..lineTo(12, y + 6)
-        ..lineTo(12, y + 4.4)
-        ..lineTo(14.6, y + 3)
-        ..lineTo(12, y + 1.6)
-        ..close();
-      canvas.drawPath(chevron, prompt);
+      canvas.drawPath(_chevrons[i], prompt);
       final f = (typed - i).clamp(0.0, 1.0);
       if (f <= 0) break;
       final w = 84 * _lines[i] * f;

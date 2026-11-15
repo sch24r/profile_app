@@ -25,14 +25,12 @@ import 'menu_panel.dart';
 /// * Mobile / tablet: always compact — logo chip left, ink menu circle right.
 /// * Intro (P4): drops in from [Motion.navDropFrom] on the IntroScope clock.
 class SiteHeader extends StatefulWidget {
-  const SiteHeader({
-    super.key,
-    required this.section,
-    required this.controller,
-  });
+  const SiteHeader({super.key, required this.section, this.controller});
 
   final SiteSection section;
-  final ScrollController controller;
+
+  /// Home scroll controller; null on sub-pages (they never scroll).
+  final ScrollController? controller;
 
   @override
   State<SiteHeader> createState() => _SiteHeaderState();
@@ -75,28 +73,31 @@ class _SiteHeaderState extends State<SiteHeader>
   @override
   void initState() {
     super.initState();
-    widget.controller.addListener(_onScroll);
+    widget.controller?.addListener(_onScroll);
   }
 
   @override
   void didUpdateWidget(SiteHeader oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.controller != widget.controller) {
-      oldWidget.controller.removeListener(_onScroll);
-      widget.controller.addListener(_onScroll);
+      oldWidget.controller?.removeListener(_onScroll);
+      widget.controller?.addListener(_onScroll);
     }
   }
 
   @override
   void dispose() {
-    widget.controller.removeListener(_onScroll);
+    widget.controller?.removeListener(_onScroll);
     _collapse.dispose();
     super.dispose();
   }
 
   void _onScroll() {
-    if (!_collapsible || !widget.controller.hasClients) return;
-    final offset = widget.controller.offset;
+    final controller = widget.controller;
+    if (!_collapsible || controller == null || !controller.hasClients) {
+      return;
+    }
+    final offset = controller.offset;
     final threshold = Motion.navCollapseVh * context.screenHeight;
     final goingDown = offset > _lastOffset;
     final wasGoingDown = _lastOffset > _turnOffset;

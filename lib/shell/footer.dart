@@ -5,11 +5,13 @@ import '../core/max_width.dart';
 import '../core/router.dart';
 import '../data/cv.dart';
 import '../data/sections.dart';
+import '../theme/motion.dart';
 import '../theme/spacing.dart';
 import '../theme/typography.dart';
 
-/// Static site footer on `surface`: large wordmark, section links, contact,
-/// location, hairline and the copyright line. No motion.
+/// Static Home-only footer on `surface`: large wordmark, page links,
+/// hairline and the copyright line. No motion. Deliberately holds NO contact
+/// details or location (those live in ContactPanel and the hero toast).
 class Footer extends StatelessWidget {
   const Footer({super.key});
 
@@ -28,84 +30,31 @@ class Footer extends StatelessWidget {
       ),
     );
 
-    final bio = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        wordmark,
-        const SizedBox(height: Space.s12),
-        Text(
-          'Cyber Security Specialist · Digital Forensics & OSINT',
-          style: t.body.copyWith(color: p.inkMuted),
-        ),
-      ],
-    );
-
-    final sections = _FooterColumn(
-      title: 'Navigation',
+    final pages = _FooterColumn(
+      title: 'Pages',
       children: [
         for (final s in SiteSection.values)
           ShellTextLink(label: s.label, onTap: () => AppNav.go(context, s)),
       ],
     );
 
-    final location = _FooterColumn(
-      title: 'Location & Availability',
-      children: [
-        Text(Cv.contact.location, style: t.body.copyWith(color: p.ink)),
-        const SizedBox(height: Space.s8),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: Space.s8,
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(color: p.mint, shape: BoxShape.circle),
-            ),
-            Text(
-              'Open to CTF & Security projects',
-              style: t.caption.copyWith(color: p.inkMuted),
-            ),
-          ],
-        ),
-      ],
-    );
-
-    final Widget columns = switch (bp) {
-      Bp.desktop => Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(flex: 5, child: bio),
-          const SizedBox(width: Space.s32),
-          Expanded(flex: 3, child: sections),
-          Expanded(flex: 4, child: location),
-        ],
-      ),
-      Bp.tablet => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          bio,
-          SizedBox(height: gap),
-          Row(
+    final Widget columns = bp == Bp.mobile
+        ? Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(child: sections),
-              Expanded(child: location),
+              wordmark,
+              SizedBox(height: gap),
+              pages,
             ],
-          ),
-        ],
-      ),
-      Bp.mobile => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          bio,
-          SizedBox(height: gap),
-          sections,
-          const SizedBox(height: Space.s24),
-          location,
-        ],
-      ),
-    };
+          )
+        : Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 2, child: wordmark),
+              const SizedBox(width: Space.s32),
+              Expanded(child: pages),
+            ],
+          );
 
     return ColoredBox(
       color: p.surface,
@@ -113,7 +62,7 @@ class Footer extends StatelessWidget {
         top: false,
         child: Padding(
           padding: EdgeInsets.only(
-            top: Layout.sectionPadding(bp) * 0.75,
+            top: Layout.sectionPadding(bp),
             bottom: Space.s32,
           ),
           child: MaxWidth(
@@ -138,12 +87,17 @@ class Footer extends StatelessWidget {
                       label: 'Back to top ↑',
                       style: t.caption.copyWith(color: p.inkMuted),
                       onTap: () {
-                        final scrollable = Scrollable.maybeOf(context);
-                        scrollable?.position.animateTo(
-                          0,
-                          duration: const Duration(milliseconds: 600),
-                          curve: Curves.easeInOutCubic,
-                        );
+                        final position = Scrollable.maybeOf(context)?.position;
+                        if (position == null) return;
+                        if (context.reduceMotion) {
+                          position.jumpTo(0);
+                        } else {
+                          position.animateTo(
+                            0,
+                            duration: Motion.scrollToDuration,
+                            curve: Motion.scrollTo,
+                          );
+                        }
                       },
                     ),
                   ],

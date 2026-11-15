@@ -259,19 +259,3 @@ class LanguageSkill {
   final int level; // 1..5
   final String label; // CV text verbatim
 }
-
-@immutable
-class Stat {
-  const Stat({
-    required this.value,
-    required this.caption,
-    required this.detail,
-  });
-
-  /// Display string, e.g. "1st", "4", "6", "3.66".
-  final String value;
-  final String caption;
-
-  /// Hover / tap swap text (P11 caption swap).
-  final String detail;
-}

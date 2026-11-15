@@ -4,8 +4,8 @@ import 'colors.dart';
 import 'typography.dart';
 
 abstract final class AppTheme {
-  static ThemeData light = _build(AppPalette.light);
-  static ThemeData dark = _build(AppPalette.dark);
+  static final ThemeData light = _build(AppPalette.light);
+  static final ThemeData dark = _build(AppPalette.dark);
 
   static ThemeData _build(AppPalette p) {
     final scheme = ColorScheme(

@@ -57,6 +57,22 @@ class _ClusterGeometry {
 
   static final Map<int, _ClusterGeometry> _cache = {};
 
+  /// Scaled shard paths (last entry = spark), cached for the last size.
+  Size? _pathSize;
+  List<Path> _paths = const [];
+
+  List<Path> pathsFor(Size size) {
+    if (size == _pathSize) return _paths;
+    final side = math.min(size.width, size.height);
+    final dx = (size.width - side) / 2;
+    final dy = (size.height - side) / 2;
+    Offset m(Offset o) => Offset(dx + o.dx * side, dy + o.dy * side);
+    Path tri(_Shard s) => Path()..addPolygon([m(s.a), m(s.b), m(s.c)], true);
+    _paths = [for (final s in shards) tri(s), tri(spark)];
+    _pathSize = size;
+    return _paths;
+  }
+
   static _ClusterGeometry of(int seed) =>
       _cache.putIfAbsent(seed, () => _generate(seed));
 
@@ -127,22 +143,14 @@ class _ClusterPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     if (size.isEmpty || colors.isEmpty) return;
     // Uniform scale into a centred square so shards keep their angles.
-    final side = math.min(size.width, size.height);
-    final dx = (size.width - side) / 2;
-    final dy = (size.height - side) / 2;
-    Offset m(Offset o) => Offset(dx + o.dx * side, dy + o.dy * side);
-
+    final paths = shards.pathsFor(size);
     final paint = Paint()..isAntiAlias = true;
-    for (final s in shards.shards) {
-      paint.color = colors[s.colorIndex % colors.length];
-      canvas.drawPath(
-        Path()..addPolygon([m(s.a), m(s.b), m(s.c)], true),
-        paint,
-      );
+    for (var i = 0; i < shards.shards.length; i++) {
+      paint.color = colors[shards.shards[i].colorIndex % colors.length];
+      canvas.drawPath(paths[i], paint);
     }
-    final k = shards.spark;
     paint.color = spark;
-    canvas.drawPath(Path()..addPolygon([m(k.a), m(k.b), m(k.c)], true), paint);
+    canvas.drawPath(paths.last, paint);
   }
 
   @override

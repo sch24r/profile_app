@@ -45,7 +45,7 @@ class ChipTag extends StatelessWidget {
         p.onDeep,
         p.onDeep.withValues(alpha: 0.3),
       ),
-      ChipStyle.onAccent => (const Color(0xFFFFFFFF), p.onAccent, null),
+      ChipStyle.onAccent => (p.onDeep, p.onAccent, null),
     };
 
     final textStyle = (mono ? t.label : t.caption.copyWith(height: 1.2))

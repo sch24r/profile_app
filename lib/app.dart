@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'core/router.dart';
 import 'core/theme_controller.dart';
 import 'theme/app_theme.dart';
+import 'theme/colors.dart';
 import 'theme/motion.dart';
 
 /// Root widget: provides the [ThemeController] and configures [MaterialApp]
@@ -25,7 +26,7 @@ class PortfolioApp extends StatelessWidget {
           darkTheme: AppTheme.dark,
           themeMode: mode,
           themeAnimationDuration: Motion.themeSwitch,
-          color: const Color(0xFF2A0E57),
+          color: AppPalette.light.deep,
           initialRoute:
               WidgetsBinding.instance.platformDispatcher.defaultRouteName,
           onGenerateRoute: AppNav.onGenerateRoute,

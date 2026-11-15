@@ -81,10 +81,15 @@ class _PointerTiltState extends State<PointerTilt>
   ValueListenable<Offset?>? _tracker;
   bool _enabled = false;
 
+  /// Window size, cached from dependencies so the global-pointer listener
+  /// never performs an inherited lookup outside of build.
+  Size _window = Size.zero;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     _enabled = context.pointerEffects;
+    _window = MediaQuery.sizeOf(context);
     _bindTracker(
       widget.global && _enabled ? PointerTracker.maybeOf(context) : null,
     );
@@ -175,7 +180,8 @@ class _PointerTiltState extends State<PointerTilt>
       _setTarget(Offset.zero);
       return;
     }
-    final window = MediaQuery.sizeOf(context);
+    final window = _window;
+    if (window.isEmpty) return;
     final origin = box.localToGlobal(Offset.zero);
     final rect = origin & box.size;
     // Off-screen: relax to flat rather than tracking invisibly.
