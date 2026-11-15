@@ -80,7 +80,7 @@ class Footer extends StatelessWidget {
                   runSpacing: Space.s8,
                   children: [
                     Text(
-                      '© 2026 ${Cv.contact.name} · Built with Flutter',
+                      '© 2026 ${Cv.contact.name}',
                       style: t.caption.copyWith(color: p.inkMuted),
                     ),
                     ShellTextLink(
