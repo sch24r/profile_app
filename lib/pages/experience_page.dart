@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 import '../data/sections.dart';
+import '../sections/experience_section.dart';
+import '../sections/organizations_section.dart';
+import '../sections/volunteers_section.dart';
 import '../shell/sub_page_shell.dart';
 
-/// Stub — replaced by the real page in the sections/pages step.
+/// /experience — one screen (SubPageShell) with a HorizontalRail body.
 class ExperiencePage extends StatelessWidget {
   const ExperiencePage({super.key});
 
@@ -14,7 +17,15 @@ class ExperiencePage extends StatelessWidget {
       eyebrow: 'EXPERIENCE',
       titleLines: const ['EXPERIENCE'],
       tabs: SiteSection.experience.tabs,
-      bodyBuilder: (context, tab) => const SizedBox.expand(),
+      bodyBuilder: (context, tab) => switch (tab) {
+        'organizations' => const OrganizationsRail(
+          key: ValueKey('page:experience:organizations'),
+        ),
+        'volunteering' => const VolunteeringRail(
+          key: ValueKey('page:experience:volunteering'),
+        ),
+        _ => const WorkRail(key: ValueKey('page:experience:work')),
+      },
     );
   }
 }

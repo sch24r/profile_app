@@ -35,6 +35,7 @@ class ProficiencyMeter extends StatelessWidget {
         child: SizedBox(
           height: 8,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               for (var i = 0; i < max; i++) ...[
                 if (i > 0) const SizedBox(width: 4),

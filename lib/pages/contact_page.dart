@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../data/sections.dart';
+import '../sections/contact_panel.dart';
 import '../shell/sub_page_shell.dart';
 
-/// Stub — replaced by the real page in the sections/pages step.
+/// /contact — one screen; the ContactPanel fills the remaining height.
 class ContactPage extends StatelessWidget {
   const ContactPage({super.key});
 
@@ -12,9 +13,9 @@ class ContactPage extends StatelessWidget {
     return SubPageShell(
       section: SiteSection.contact,
       eyebrow: 'CONTACT',
-      titleLines: const ['CONTACT'],
-      tabs: SiteSection.contact.tabs,
-      bodyBuilder: (context, tab) => const SizedBox.expand(),
+      titleLines: const ['GET IN', 'TOUCH'],
+      bodyBuilder: (context, tab) =>
+          const ContactPanel(key: ValueKey('page:contact'), fill: true),
     );
   }
 }

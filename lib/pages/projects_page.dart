@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../data/sections.dart';
+import '../sections/projects_chapter.dart';
 import '../shell/sub_page_shell.dart';
 
-/// Stub — replaced by the real page in the sections/pages step.
+/// /projects — one screen (SubPageShell) with a HorizontalRail body.
 class ProjectsPage extends StatelessWidget {
   const ProjectsPage({super.key});
 
@@ -12,9 +13,10 @@ class ProjectsPage extends StatelessWidget {
     return SubPageShell(
       section: SiteSection.projects,
       eyebrow: 'PROJECTS',
-      titleLines: const ['PROJECTS'],
+      titleLines: const ['THINGS', "I'VE BUILT"],
       tabs: SiteSection.projects.tabs,
-      bodyBuilder: (context, tab) => const SizedBox.expand(),
+      bodyBuilder: (context, tab) =>
+          const ProjectsRail(key: ValueKey('page:projects')),
     );
   }
 }

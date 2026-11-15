@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../data/sections.dart';
+import '../sections/skills_section.dart';
 import '../shell/sub_page_shell.dart';
 
-/// Stub — replaced by the real page in the sections/pages step.
+/// /skills — one screen (SubPageShell) with a HorizontalRail body.
 class SkillsPage extends StatelessWidget {
   const SkillsPage({super.key});
 
@@ -12,9 +13,10 @@ class SkillsPage extends StatelessWidget {
     return SubPageShell(
       section: SiteSection.skills,
       eyebrow: 'SKILLS',
-      titleLines: const ['SKILLS'],
+      titleLines: const ['TOOLKIT'],
       tabs: SiteSection.skills.tabs,
-      bodyBuilder: (context, tab) => const SizedBox.expand(),
+      bodyBuilder: (context, tab) =>
+          const SkillsRail(key: ValueKey('page:skills')),
     );
   }
 }
