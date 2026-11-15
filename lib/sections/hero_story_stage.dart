@@ -13,8 +13,6 @@ import '../theme/motion.dart';
 import '../theme/spacing.dart';
 import '../theme/typography.dart';
 import '../widgets/art/logo_mark.dart';
-import '../widgets/art/monogram.dart';
-import '../widgets/motion/accordion_column.dart';
 import '../widgets/motion/in_view.dart';
 import '../widgets/motion/pinned_stage.dart';
 import '../widgets/motion/reveal.dart';
@@ -121,11 +119,12 @@ class _HeroCopy extends StatelessWidget {
     final p = context.palette;
     final t = AppType.of(context);
     final desktop = context.isDesktop;
+    final shortScreen = context.screenHeight < 750;
     final headline = Text(
       Cv.headline,
       textAlign: TextAlign.center,
       maxLines: desktop ? 1 : 3,
-      style: t.bodyL.copyWith(color: p.inkMuted),
+      style: (shortScreen ? t.body : t.bodyL).copyWith(color: p.inkMuted),
     );
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -135,7 +134,7 @@ class _HeroCopy extends StatelessWidget {
           textAlign: TextAlign.center,
           style: t.label.copyWith(color: p.primary),
         ),
-        const SizedBox(height: Space.s16),
+        SizedBox(height: shortScreen ? Space.s12 : Space.s16),
         // P2: the name is the overlay colour, so it reads as carved out of it.
         Semantics(
           header: true,
@@ -162,16 +161,16 @@ class _HeroCopy extends StatelessWidget {
             ),
           ),
         ),
-        SizedBox(height: desktop ? Space.s20 : Space.s16),
+        SizedBox(height: shortScreen ? Space.s12 : (desktop ? Space.s20 : Space.s16)),
         Text(
           'NRP: ${Cv.nrp}',
           textAlign: TextAlign.center,
-          style: t.label.copyWith(
+          style: (shortScreen ? t.caption : t.label).copyWith(
             color: p.primary,
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: Space.s8),
+        SizedBox(height: shortScreen ? Space.s4 : Space.s8),
         if (desktop)
           FittedBox(fit: BoxFit.scaleDown, child: headline)
         else
@@ -179,7 +178,7 @@ class _HeroCopy extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 520),
             child: headline,
           ),
-        SizedBox(height: desktop ? Space.s24 : Space.s20),
+        SizedBox(height: shortScreen ? Space.s16 : (desktop ? Space.s24 : Space.s20)),
         const _HeroCta(),
       ],
     );
@@ -575,11 +574,15 @@ class _Geo {
     title = Rect.fromLTWH(card.left + pad, card.top + pad, innerW, titleH);
 
     // Hero photo, bottom centre, cropped at ~25 % of its height (75 % visible).
-    final photoH = (vh * 0.54).clamp(240.0, 520.0);
+    final isShort = vh < 750;
+    final photoH = (vh * (isShort ? 0.44 : 0.54)).clamp(200.0, 520.0);
     final photoW = photoH * 0.8;
+    final heroBottom = isShort ? 335.0 : 440.0;
+    final desiredTop = vh - photoH * (isShort ? 0.65 : 0.75);
+    final photoTop = math.max(heroBottom + Space.s20, desiredTop);
     photo = Rect.fromLTWH(
       (vw - photoW) / 2,
-      vh - photoH * 0.75,
+      photoTop,
       photoW,
       photoH,
     );
@@ -667,7 +670,7 @@ class _DesktopStageState extends State<_DesktopStage> {
     final p = widget.progress.value;
     final wipe = seg(p, _wipe.$1, _wipe.$2);
     final collapse = seg(p, _collapse.$1, _collapse.$2, Curves.easeInOut);
-    _heroLive.value = p < _heroOut.$2;
+    _heroLive.value = p < 0.08;
     _idLive.value = p < _wipe.$2 + 0.01;
     _artLive.value = wipe > 0 && collapse < 1;
     _settled.value = p >= _profileIn.$2;
@@ -726,10 +729,13 @@ class _DesktopStageState extends State<_DesktopStage> {
     });
     final progress = widget.progress;
     final vh = size.height;
-    final clearance = SiteShell.headerClearance(context);
+    final shortScreen = vh < 750;
+    final clearance = shortScreen
+        ? (84.0 + (g.photo.top - 84.0 - 280.0) * 0.45).clamp(116.0, 132.0)
+        : SiteShell.headerClearance(context);
     final pad = Layout.pagePadding(Bp.desktop);
 
-    // ── Hero copy: scrolls away + fades (0–0.22). ──
+    // ── Hero copy: scrolls away + fades (0–0.08). ──
     final hero = Positioned(
       top: clearance,
       left: pad,
@@ -745,15 +751,17 @@ class _DesktopStageState extends State<_DesktopStage> {
           builder: (context, child) => Transform.translate(
             offset: Offset(
               0,
-              -seg(progress.value, _heroOut.$1, _heroOut.$2) * vh * 0.6,
+              -seg(progress.value, 0.0, 0.08) * math.max(vh * 0.85, 480.0),
             ),
             child: child,
           ),
           child: FadeTransition(
-            opacity: _map((v) => 1 - seg(v, 0.06, 0.2)),
+            opacity: _map((v) => 1 - seg(v, 0.0, 0.07)),
             child: _HeroCopy(
               lines: ['${Cv.nameLines[0]} ${Cv.nameLines[1]}', Cv.nameLines[2]],
-              maxNameHeight: math.max(140, vh * 0.34),
+              maxNameHeight: shortScreen
+                  ? (vh * 0.22).clamp(110.0, 160.0)
+                  : math.max(140.0, vh * 0.34),
             ),
           ),
         ),
@@ -766,7 +774,7 @@ class _DesktopStageState extends State<_DesktopStage> {
       child: AnimatedBuilder(
         animation: progress,
         builder: (context, child) {
-          final f = seg(progress.value, 0.02, _heroOut.$2, Motion.expoOut);
+          final f = seg(progress.value, 0.07, _heroOut.$2, Motion.expoOut);
           if (f >= 1) return child!;
           return Transform(
             alignment: Alignment.center,
@@ -779,9 +787,8 @@ class _DesktopStageState extends State<_DesktopStage> {
         },
         child: FadeTransition(
           opacity: _map((v) {
-            if (v <= 0.0) return 0.0;
-            if (v < 0.04) return 0.3 * v / 0.04;
-            return 0.3 + 0.7 * seg(v, 0.04, _heroOut.$2);
+            if (v <= 0.07) return 0.0;
+            return seg(v, 0.07, _heroOut.$2, Motion.expoOut);
           }),
           child: _CentreCard(
             key: const ValueKey('card:profile:0'),
@@ -830,7 +837,7 @@ class _DesktopStageState extends State<_DesktopStage> {
       ),
     );
 
-    // ── Side columns: P10 linear rise, P11 accordion when p > 0.97. ──
+    // ── Side columns: P10 linear rise. ──
     Widget column(Rect r, List<Widget> cards) {
       final from = math.max(vh * Motion.riseFromVh, vh - r.top + Space.s8);
       return Positioned.fromRect(
@@ -848,12 +855,16 @@ class _DesktopStageState extends State<_DesktopStage> {
             valueListenable: _accordion,
             builder: (context, live, child) =>
                 IgnorePointer(ignoring: !live, child: child),
-            child: AccordionColumn(
-              extent: g.cardH,
-              gap: _Geo.gap,
-              items: [
-                for (final c in cards)
-                  (context, open) => _SideSlot(height: g.sideH, child: c),
+            child: Column(
+              children: [
+                for (var i = 0; i < cards.length; i++) ...[
+                  if (i > 0) const SizedBox(height: _Geo.gap),
+                  Expanded(
+                    child: SizedBox.expand(
+                      child: cards[i],
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -891,7 +902,7 @@ class _DesktopStageState extends State<_DesktopStage> {
           animation: Listenable.merge([progress, intro]),
           builder: (context, child) {
             final rise = _introT(intro, IntroScope.photoRise);
-            final d = seg(progress.value, 0.02, _heroOut.$2, Curves.easeInOut);
+            final d = seg(progress.value, 0.06, _heroOut.$2, Curves.easeInOut);
             final s = 1 + (g.dockScale - 1) * d;
             final move = (g.dockCenter - g.photo.center) * d;
             return Transform(
@@ -930,29 +941,6 @@ class _DesktopStageState extends State<_DesktopStage> {
           clipBehavior: Clip.hardEdge,
           children: [hero, left, right, card, title, photo, toast],
         ),
-      ),
-    );
-  }
-}
-
-/// A side card inside the accordion: content laid out at the equal-share
-/// height (guarded by FitHeight inside the card), clipped when the slot
-/// shrinks to a title strip, top-aligned when it grows.
-class _SideSlot extends StatelessWidget {
-  const _SideSlot({required this.height, required this.child});
-
-  final double height;
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(Radii.card),
-      child: OverflowBox(
-        alignment: Alignment.topCenter,
-        minHeight: height,
-        maxHeight: height,
-        child: child,
       ),
     );
   }
