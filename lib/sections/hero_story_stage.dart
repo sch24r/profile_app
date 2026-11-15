@@ -774,15 +774,20 @@ class _DesktopStageState extends State<_DesktopStage> {
       child: AnimatedBuilder(
         animation: progress,
         builder: (context, child) {
-          final f = seg(progress.value, 0.07, _heroOut.$2, Motion.expoOut);
-          if (f >= 1) return child!;
+          final p = progress.value;
+          final f = seg(p, 0.07, _heroOut.$2, Motion.expoOut);
+          final content = IgnorePointer(
+            ignoring: p < 0.07,
+            child: child,
+          );
+          if (f >= 1) return content;
           return Transform(
             alignment: Alignment.center,
             transform: Matrix4.identity()
               ..setEntry(3, 2, 0.0012)
               ..translateByDouble(0, vh * 0.12 * (1 - f), 0, 1)
               ..rotateX(18 * math.pi / 180 * (1 - f)),
-            child: child,
+            child: content,
           );
         },
         child: FadeTransition(
@@ -939,7 +944,7 @@ class _DesktopStageState extends State<_DesktopStage> {
       child: SizedBox.expand(
         child: Stack(
           clipBehavior: Clip.hardEdge,
-          children: [hero, left, right, card, title, photo, toast],
+          children: [left, right, card, title, photo, hero, toast],
         ),
       ),
     );
