@@ -407,6 +407,7 @@ class _RailIndicator extends StatelessWidget {
     final duration = context.reduceMotion
         ? Duration.zero
         : Motion.indicatorStep;
+    final dotsTappable = context.pointerEffects;
     return ValueListenableBuilder<int>(
       valueListenable: position,
       builder: (context, i, _) {
@@ -424,34 +425,40 @@ class _RailIndicator extends StatelessWidget {
             const SizedBox(width: Space.s16),
             if (positions > 1)
               Flexible(
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  physics: const NeverScrollableScrollPhysics(),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      for (var d = 0; d < positions; d++)
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => onDot(d),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 3,
-                              vertical: 12,
-                            ),
-                            child: AnimatedContainer(
-                              duration: duration,
-                              curve: Motion.indicator,
-                              width: d == i ? 22 : 6,
-                              height: 6,
-                              decoration: BoxDecoration(
-                                color: d == i ? p.primary : p.hairline,
-                                borderRadius: BorderRadius.circular(Radii.pill),
+                child: ExcludeSemantics(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const NeverScrollableScrollPhysics(),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (var d = 0; d < positions; d++)
+                          GestureDetector(
+                            behavior: HitTestBehavior.opaque,
+                            // Mouse convenience only: 6 px dots are not
+                            // usable touch targets (swipe / arrows / keys are).
+                            onTap: dotsTappable ? () => onDot(d) : null,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 3,
+                                vertical: 12,
+                              ),
+                              child: AnimatedContainer(
+                                duration: duration,
+                                curve: Motion.indicator,
+                                width: d == i ? 22 : 6,
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: d == i ? p.primary : p.hairline,
+                                  borderRadius: BorderRadius.circular(
+                                    Radii.pill,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
