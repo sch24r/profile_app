@@ -12,6 +12,7 @@ import '../shell/site_shell.dart';
 import '../theme/motion.dart';
 import '../theme/spacing.dart';
 import '../theme/typography.dart';
+import '../widgets/art/logo_mark.dart';
 import '../widgets/art/monogram.dart';
 import '../widgets/motion/accordion_column.dart';
 import '../widgets/motion/in_view.dart';
@@ -455,9 +456,14 @@ class _FlipState extends State<_Flip> with SingleTickerProviderStateMixin {
     final p = context.palette;
     const back = _ProfileFace();
     final front = ExcludeSemantics(
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(Radii.card),
-        child: MonogramArt(bg: p.deep, fg: p.violet300, accent: p.flare),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: p.deep,
+          borderRadius: BorderRadius.circular(Radii.card),
+        ),
+        child: Center(
+          child: LogoMark(color: p.onDeep, height: 48),
+        ),
       ),
     );
     return AnimatedBuilder(
@@ -1060,9 +1066,14 @@ class _CentreCard extends StatelessWidget {
           );
         },
         child: ExcludeSemantics(
-          child: ClipRRect(
-            borderRadius: shape,
-            child: MonogramArt(bg: p.deep, fg: p.violet300, accent: p.flare),
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: p.deep,
+              borderRadius: shape,
+            ),
+            child: Center(
+              child: LogoMark(color: p.onDeep, height: 56),
+            ),
           ),
         ),
       ),

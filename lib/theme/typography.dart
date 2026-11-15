@@ -24,6 +24,7 @@ TextStyle _s(
   letterSpacing: size * trackingEm,
   fontFeatures: features,
   leadingDistribution: TextLeadingDistribution.even,
+  decoration: TextDecoration.none,
 );
 
 /// Fluid type scale (docs/spec.md §1.2). Colours are NOT set here — they come

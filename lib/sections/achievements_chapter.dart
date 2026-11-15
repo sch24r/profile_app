@@ -580,7 +580,11 @@ class _CentreCard extends StatelessWidget {
     );
 
     if (!pinned) {
-      return BentoCard(tone: CardTone.lilac, child: content);
+      return BentoCard(
+        tone: CardTone.surface,
+        width: double.infinity,
+        child: content,
+      );
     }
     return BentoCard(
       tone: CardTone.lilac,
@@ -640,6 +644,7 @@ class _PodiumCard extends StatelessWidget {
     );
     return BentoCard(
       tone: tone,
+      width: double.infinity,
       padding: const EdgeInsets.all(Space.s20),
       child: pinned ? FitHeight(child: content) : content,
     );

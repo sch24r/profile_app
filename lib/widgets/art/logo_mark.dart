@@ -31,6 +31,7 @@ class LogoMark extends StatelessWidget {
       height: 0.92,
       letterSpacing: -0.4,
       color: c,
+      decoration: TextDecoration.none,
       leadingDistribution: TextLeadingDistribution.even,
     );
 

@@ -112,6 +112,7 @@ class _PressableState extends State<Pressable>
 
     body = Stack(
       clipBehavior: Clip.none,
+      fit: StackFit.passthrough,
       children: [
         body,
         if (_focusHighlight)

@@ -85,12 +85,15 @@ class _MenuRoute extends PopupRoute<void> {
       namesRoute: true,
       explicitChildNodes: true,
       label: 'Site menu',
-      child: _MenuPanel(
-        animation: animation,
-        from: from,
-        current: current,
-        onSelect: (s) => _select(context, s),
-        onClose: () => Navigator.of(context).maybePop(),
+      child: Material(
+        type: MaterialType.transparency,
+        child: _MenuPanel(
+          animation: animation,
+          from: from,
+          current: current,
+          onSelect: (s) => _select(context, s),
+          onClose: () => Navigator.of(context).maybePop(),
+        ),
       ),
     );
   }
@@ -157,7 +160,7 @@ class _MenuPanelState extends State<_MenuPanel> {
         final origin = (widget.from ?? _defaultOrigin(context, size)).shift(
           -target.topLeft,
         );
-        final panel = ColoredBox(
+        final panel = Material(
           color: p.surface,
           child: FadeTransition(
             opacity: reduce ? widget.animation : _content,

@@ -554,6 +554,7 @@ class _ProjectCardState extends State<_ProjectCard> {
 
     Widget card = BentoCard(
       tone: widget.tone,
+      width: double.infinity,
       onTap: pointer ? null : () => _set(!_active),
       child: widget.fixedHeight ? FitHeight(child: content) : content,
     );
@@ -595,6 +596,7 @@ class _SeeAllCard extends StatelessWidget {
     );
     return BentoCard(
       tone: CardTone.deep,
+      width: double.infinity,
       onTap: () => AppNav.go(context, SiteSection.projects),
       child: fixedHeight
           ? FitHeight(alignment: Alignment.bottomLeft, child: content)
